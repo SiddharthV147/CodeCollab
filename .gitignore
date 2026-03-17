@@ -1,0 +1,104 @@
+# ─── Maven / Spring Boot ───────────────────────────────────────────────────────
+
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+
+# Maven wrapper
+.mvn/wrapper/maven-wrapper.properties
+
+# Spring Boot
+spring-shell.log
+*.log
+logs/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# VS Code Java
+.vscode/
+.factorypath
+
+# ─── React / Node (Vite) ───────────────────────────────────────────────────────
+
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+.vite/
+.cache/
+
+# Vite build output
+frontend/dist/
+frontend/.vite/
+
+# npm / yarn / pnpm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ─── Environment & Secrets ─────────────────────────────────────────────────────
+
+# Never commit these
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+application-prod.yml
+application-secrets.yml
+*.key
+*.pem
+*.p12
+*.jks
+
+# ─── OS ────────────────────────────────────────────────────────────────────────
+
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ─── Docker ────────────────────────────────────────────────────────────────────
+
+# Keep Dockerfile and docker-compose.yml tracked
+# Ignore local override files
+docker-compose.override.yml
+
+# ─── Misc ──────────────────────────────────────────────────────────────────────
+
+*.swp
+*.swo
+*~
+.gradle/
+build/

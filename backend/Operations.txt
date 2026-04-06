@@ -1,0 +1,36 @@
+newInsert = {word, index, userId, docId}
+lastChange = {userId, docId, index, additions}
+
+if(newInsert.docId == lastChange.docId) {
+    string S = doc.content.insert(newInsert.word, newInsert.index);
+    lastChange.docId++
+    return newRecord
+} else {
+    if(newInsert.index < lastChange.index) {
+        newRecord = doc.content.insert(newInsert.word, newInsert.index);
+        lastChange.docId++
+        return newRecord
+    }
+    else if(lastChange.index < newInsert.index) {
+            newIndex = newInsert.index + lastChange.additions
+            newRecord = doc.content.insert(newInsert.word, newIndex)
+            lastChange.docId++
+            return newRecord
+    }
+    else {
+        if(lastChange.userId < newInsert.userId) {
+            newIndex = newInsert.index + lastChange.additions
+            newRecord = doc.content.insert(newInsert.word, newIndex)
+            lastChange.docId++
+            return newRecord
+        }
+        else {
+            newRecord = doc.content.insert(newInsert.word, newInsert.index);
+            lastChange.docId++
+            return newRecord
+        }
+    }
+    }
+}
+
+##################################################################################################

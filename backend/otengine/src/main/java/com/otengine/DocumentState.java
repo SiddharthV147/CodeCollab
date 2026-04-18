@@ -1,9 +1,11 @@
 package com.otengine;
 
+import com.otengine.ops.DeleteOperation;
 import com.otengine.ops.InsertOperation;
 import com.otengine.ops.Operation;
 
 public class DocumentState {
+
     StringBuilder document;
 
     public DocumentState(String content) {
@@ -20,6 +22,8 @@ public class DocumentState {
             }
 
 //            document.insert(op.index(), ((InsertOperation) op).word());
+        } else {
+            document.delete(op.index(), op.index()+((DeleteOperation) op).length());
         }
     }
 

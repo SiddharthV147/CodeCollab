@@ -1,9 +1,10 @@
 package com.otengine.ops;
 
 public record InsertOperation(
+        String operationId,
         int documentId,
         int userId,
-        int revision,
+        int revisionId,
         int index,
         String word
 ) implements Operation {}

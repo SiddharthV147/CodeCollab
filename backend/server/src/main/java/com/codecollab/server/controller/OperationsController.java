@@ -1,16 +1,15 @@
 package com.codecollab.server.controller;
 
-import com.otengine.OTEngine;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.stereotype.Controller;
 
-@RestController
-@RequestMapping("/api")
+@Controller
 public class OperationsController {
-    OTEngine otEngine = new OTEngine();
-    @GetMapping("/health")
-    public String checkHealth() {
-        return otEngine.checkHealth();
+    @MessageMapping("/send")
+    @SendTo("/topic/messages")
+    public String processMessage(String message) {
+        System.out.println(message);
+        return "Received: " + message;
     }
 }

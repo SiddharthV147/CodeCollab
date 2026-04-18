@@ -3,115 +3,119 @@ package com.otengine.transformers;
 import com.otengine.ops.DeleteOperation;
 import com.otengine.ops.InsertOperation;
 import com.otengine.ops.Operation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Comparator;
 import java.util.List;
 
 public class InsertTransform {
-    private static final Logger log = LoggerFactory.getLogger(InsertTransform.class);
 
-    public static InsertOperation transform(List<Operation> previousEdits, InsertOperation insertOperation) throws RuntimeException {
-
+    public static InsertOperation transform(List<Operation> previousEdits, InsertOperation insertOperation, int latest) throws RuntimeException {
         if(previousEdits.isEmpty()) {
-            try {
-                return new InsertOperation(
-                        insertOperation.documentId(),
-                        insertOperation.userId(),
-                        insertOperation.revision()+1,
-                        insertOperation.index(),
-                        insertOperation.word());
-            } catch (RuntimeException e) {
-                throw new RuntimeException(e);
-            }
+            return new InsertOperation(
+                    insertOperation.operationId(),
+                    insertOperation.documentId(),
+                    insertOperation.userId(),
+                    insertOperation.revisionId()+1,
+                    insertOperation.index(),
+                    insertOperation.word()
+            );
         }
-
-        try {
-            previousEdits.sort(Comparator.comparing(Operation::revision));
-            InsertOperation revised;
-            if(previousEdits.getFirst() instanceof InsertOperation) {
-                revised = handleInsert((InsertOperation) previousEdits.getFirst(), insertOperation);
+        previousEdits.sort(Comparator.comparing(Operation::revisionId));
+        InsertOperation revised;
+        if(previousEdits.getFirst() instanceof InsertOperation) {
+            revised = handleInsertInsert((InsertOperation) previousEdits.getFirst(), insertOperation, latest);
+        } else {
+            revised = handleDeleteInsert((DeleteOperation) previousEdits.getFirst(), insertOperation, latest);
+        }
+        previousEdits.removeFirst();
+        for(Operation op: previousEdits) {
+            if(op instanceof InsertOperation) {
+                revised = handleInsertInsert((InsertOperation) op, revised, latest);
             } else {
-                revised = handleDelete((DeleteOperation) previousEdits.getFirst(), insertOperation);
+                revised = handleDeleteInsert((DeleteOperation) op, revised, latest);
             }
-            if(previousEdits.size() > 1) {
-                for(int i = 1; i < previousEdits.size(); i++) {
-                    if(previousEdits.get(i) instanceof InsertOperation) {
-                        revised = handleInsert((InsertOperation) previousEdits.get(i), revised);
-                    } else {
-                        revised = handleDelete((DeleteOperation) previousEdits.get(i), revised);
-                    }
-                }
-            }
-            return revised;
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
         }
+        return revised;
     }
 
-    public static InsertOperation handleInsert(InsertOperation previous, InsertOperation newInsert) {
-        try {
-            InsertOperation newOperation;
-            if(newInsert.revision() == previous.revision()) {
+    public static InsertOperation handleInsertInsert(InsertOperation previous, InsertOperation operation, int latest) {
+        InsertOperation newOperation;
+        System.out.println("Transforming : "+ operation + " to \n" + previous);
+        if(operation.revisionId() < previous.revisionId()) {
+            if(operation.index() < previous.index()) {
                 newOperation = new InsertOperation(
-                        newInsert.documentId(),
-                        newInsert.userId(),
-                        newInsert.revision()+1,
-                        newInsert.index(),
-                        newInsert.word()
+                        operation.operationId(),
+                        operation.documentId(),
+                        operation.userId(),
+                        previous.revisionId()+1,
+                        operation.index(),
+                        operation.word()
+                );
+            } else if(operation.index() > previous.index()) {
+                int newIndex = operation.index() + previous.word().length();
+                newOperation = new InsertOperation(
+                        operation.operationId(),
+                        operation.documentId(),
+                        operation.userId(),
+                        previous.revisionId()+1,
+                        newIndex,
+                        operation.word()
+                );
+            } else {
+                if(operation.userId() > previous.userId()) {
+                    int newIndex = operation.index() + previous.word().length();
+                    newOperation = new InsertOperation(
+                            operation.operationId(),
+                            operation.documentId(),
+                            operation.userId(),
+                            previous.revisionId()+1,
+                            newIndex,
+                            operation.word()
+                    );
+                } else {
+                    newOperation = new InsertOperation(
+                            operation.operationId(),
+                            operation.documentId(),
+                            operation.userId(),
+                            previous.revisionId()+1,
+                            operation.index(),
+                            operation.word()
+                    );
+                }
+        }
+        } else {
+            if(operation.index() >= previous.index()) {
+                int newIndex = operation.index() + previous.word().length();
+                newOperation = new InsertOperation(
+                        operation.operationId(),
+                        operation.documentId(),
+                        operation.userId(),
+                        previous.revisionId()+1,
+                        newIndex,
+                        operation.word()
+                );
+            } else {
+                newOperation = new InsertOperation(
+                        operation.operationId(),
+                        operation.documentId(),
+                        operation.userId(),
+                        previous.revisionId()+1,
+                        operation.index(),
+                        operation.word()
                 );
             }
-            else {
-                if(newInsert.index() < previous.index()) {
-                    newOperation = new InsertOperation(
-                            newInsert.documentId(),
-                            newInsert.userId(),
-                            previous.revision()+1,
-                            newInsert.index(),
-                            newInsert.word()
-                    );
-                }
-                else if (newInsert.index() > previous.index()) {
-                    int newIndex = newInsert.index() + previous.word().length();
-                    newOperation = new InsertOperation(
-                            newInsert.documentId(),
-                            newInsert.userId(),
-                            previous.revision()+1,
-                            newIndex,
-                            newInsert.word()
-                    );
-                }
-                else {
-                    if(previous.userId() < newInsert.userId()) {
-                        int newIndex = newInsert.index() + previous.word().length();
-                        newOperation = new InsertOperation(
-                                newInsert.documentId(),
-                                newInsert.userId(),
-                                previous.revision()+1,
-                                newIndex,
-                                newInsert.word()
-                        );
-                    }
-                    else {
-                        newOperation = new InsertOperation(
-                                newInsert.documentId(),
-                                newInsert.userId(),
-                                previous.revision()+1,
-                                newInsert.index(),
-                                newInsert.word()
-                        );
-                    }
-                }
-            }
-//            System.out.println("Previous: " + previous);
-//            System.out.println("Transformed: " + newOperation);
-            return newOperation;
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
         }
+        return newOperation;
     }
-    public static InsertOperation handleDelete(DeleteOperation deleteOperation, InsertOperation insertOperation) {
-        return new InsertOperation(1,1,1,1,"");
+
+    public static InsertOperation handleDeleteInsert(DeleteOperation previous, InsertOperation operation, int latest) {
+        return new InsertOperation(
+                operation.operationId(),
+                operation.documentId(),
+                operation.userId(),
+                previous.revisionId()+1,
+                operation.index(),
+                operation.word()
+        );
     }
 }
